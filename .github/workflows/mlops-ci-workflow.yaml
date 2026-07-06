@@ -37,6 +37,17 @@ jobs:
             --output data/processed/featured_house_data.csv \
             --preprocessor models/trained/preprocessor.pkl
 
+      - name: Setup MLflow 
+        run: |
+          docker run -d \
+            --name mlflow-server \
+            -p 5555:5000 \
+            ghcr.io/mlflow/mlflow:v2.22.1 \
+            mlflow server --host 0.0.0.0 \
+              --backend-store-uri sqlite:///mlflow.db \
+              --default-artifact-root /tmp/mlruns
+          until curl -sf http://localhost:5555/health; do sleep 2; done
+
       - name: Modeling & Experimentation
         run: |
           python src/models/train_model.py \
